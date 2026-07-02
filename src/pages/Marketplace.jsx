@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Search, SearchX, SlidersHorizontal, Sparkles, X } from 'lucide-react'
-import { allSkills, categories, roles as allRoles, tags as allTags } from '../data/mock'
+import { Flame, Layers3, Search, SearchX, SlidersHorizontal, Sparkles, Users2, GitFork, X } from 'lucide-react'
+import { allSkills, categories, roles as allRoles, tags as allTags, users } from '../data/mock'
 import { Button, Chip, Dropdown, EmptyState, StateGate } from '../components/ui'
 import { SkillCard, SkillCardSkeleton, SkillGridSkeleton } from '../components/skills'
-import { pluralize } from '../lib/utils'
+import { categoryArt } from '../components/viz'
+import { cn, pluralize } from '../lib/utils'
 
 const PAGE_SIZE = 12
 
@@ -44,6 +45,8 @@ function sortSkills(list, sort, q) {
   }
 }
 
+const forksThisWeek = allSkills.reduce((n, s) => n + s.forksWeek, 0)
+
 export default function Marketplace() {
   // All filter/search/sort state lives in the URL — shareable, back-button friendly.
   const [params, setParams] = useSearchParams()
@@ -76,6 +79,7 @@ export default function Marketplace() {
 
   const filters = { q, category, roles: selRoles, tags: selTags }
   const results = useMemo(() => sortSkills(allSkills.filter((s) => matches(s, filters)), sort, q), [q, category, selRoles.join(), selTags.join(), sort])
+  const trending = useMemo(() => [...allSkills].filter((s) => !s.deprecated).sort((a, b) => b.forksWeek - a.forksWeek).slice(0, 8), [])
 
   // Live counts per chip: what the result set would be with that chip applied.
   const countFor = (key, value) => allSkills.filter((s) => matches(s, {
@@ -113,40 +117,90 @@ export default function Marketplace() {
   const sortOptions = q ? [{ value: 'relevance', label: 'Relevance' }, ...SORTS] : SORTS
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="animate-fade-up">
-        <h1 className="font-display text-[26px] font-bold tracking-tight text-neutral-900">Marketplace</h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          {allSkills.length.toLocaleString()}+ skills across {categories.length} categories. Find the one that does your job.
-        </p>
+    <div className="space-y-7">
+      {/* ─── Hero ─── */}
+      <div className="animate-fade-up relative overflow-hidden rounded-3xl bg-ink-950 px-6 pt-10 pb-8 ring-1 ring-white/10 ring-inset sm:px-10">
+        <div className="bg-hero-grid absolute inset-0" />
+        <div className="animate-float absolute -top-24 left-1/4 h-64 w-64 rounded-full bg-brand-600/30 blur-[90px]" />
+        <div className="animate-float-slow absolute -right-10 bottom-0 h-56 w-56 rounded-full bg-brand-500/15 blur-[80px]" />
+
+        <div className="relative mx-auto max-w-2xl text-center">
+          <h1 className="font-display mb-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            Find the skill that <span className="text-gradient">does your job</span>
+          </h1>
+          <p className="mb-6 text-[14px] text-zinc-400">
+            Every skill shows exactly what it does — in plain language — before you trust it.
+          </p>
+
+          {/* Search, front and center */}
+          <div className="relative mx-auto max-w-xl">
+            <Search size={18} className="pointer-events-none absolute top-1/2 left-4.5 -translate-y-1/2 text-zinc-500" />
+            <input
+              value={q}
+              onChange={(e) => setParam('q', e.target.value)}
+              placeholder="Search skills, roles, categories, tags…"
+              aria-label="Search skills"
+              className="h-13 w-full rounded-2xl bg-white/10 pr-12 pl-12 text-[15px] text-white ring-1 ring-white/15 ring-inset backdrop-blur-md transition-all outline-none placeholder:text-zinc-500 focus:bg-white/15 focus:ring-2 focus:ring-brand-500"
+            />
+            {q && (
+              <button onClick={() => setParam('q', '')} aria-label="Clear search" className="absolute top-1/2 right-3.5 grid h-7 w-7 -translate-y-1/2 cursor-pointer place-items-center rounded-full text-zinc-400 hover:bg-white/10 hover:text-white">
+                <X size={15} />
+              </button>
+            )}
+          </div>
+
+          {/* Live stats — all real numbers */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-7 gap-y-2 text-[12.5px] font-semibold text-zinc-400">
+            <span className="flex items-center gap-1.5"><Sparkles size={13} className="text-brand-400" /> {allSkills.length.toLocaleString()} skills</span>
+            <span className="flex items-center gap-1.5"><Layers3 size={13} className="text-brand-400" /> {categories.length} categories</span>
+            <span className="flex items-center gap-1.5"><Users2 size={13} className="text-brand-400" /> {users.length} creators</span>
+            <span className="flex items-center gap-1.5"><GitFork size={13} className="text-brand-400" /> {forksThisWeek} forks this week</span>
+          </div>
+        </div>
       </div>
 
-      {/* Search */}
-      <div className="relative animate-fade-up" style={{ animationDelay: '60ms' }}>
-        <Search size={17} className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-neutral-400" />
-        <input
-          value={q}
-          onChange={(e) => setParam('q', e.target.value)}
-          placeholder="Search skills, roles, categories, tags…"
-          aria-label="Search skills"
-          className="h-12 w-full rounded-2xl bg-surface pr-11 pl-11 text-[14.5px] text-neutral-900 shadow-soft ring-1 ring-neutral-200 ring-inset transition-shadow outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-brand-500"
-        />
-        {q && (
-          <button onClick={() => setParam('q', '')} aria-label="Clear search" className="absolute top-1/2 right-3.5 grid h-7 w-7 -translate-y-1/2 cursor-pointer place-items-center rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700">
-            <X size={15} />
-          </button>
-        )}
-      </div>
+      {/* ─── Trending rail (hidden while filtering — results take the stage) ─── */}
+      {!anyFilter && (
+        <section className="animate-fade-up" style={{ animationDelay: '80ms' }}>
+          <div className="mb-3.5 flex items-center gap-2">
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 text-white"><Flame size={14} /></span>
+            <h2 className="font-display text-lg font-bold tracking-tight text-neutral-900">Trending this week</h2>
+            <span className="text-[12px] font-semibold text-neutral-400">ranked by real forks</span>
+          </div>
+          <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 scrollbar-none sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            {trending.map((s, i) => (
+              <div key={s.id} className="w-[290px] shrink-0 snap-start">
+                <SkillCard skill={s} rank={i + 1} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* Filters */}
-      <div className="space-y-3 animate-fade-up" style={{ animationDelay: '120ms' }}>
+      {/* ─── Category quick-picks ─── */}
+      <div className="space-y-3 animate-fade-up" style={{ animationDelay: '140ms' }}>
         <FilterRow label="Category">
-          {categories.map((c) => (
-            <Chip key={c} active={category === c} onClick={() => setParam('category', category === c ? '' : c)} count={countFor('category', c)}>
-              {c}
-            </Chip>
-          ))}
+          {categories.map((c) => {
+            const { icon: Icon } = categoryArt(c)
+            const active = category === c
+            return (
+              <button
+                key={c}
+                onClick={() => setParam('category', active ? '' : c)}
+                aria-pressed={active}
+                className={cn(
+                  'inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[12.5px] font-semibold transition-all duration-200',
+                  active
+                    ? 'bg-neutral-900 text-neutral-50 shadow-soft'
+                    : 'bg-surface text-neutral-600 ring-1 ring-neutral-200 ring-inset hover:ring-brand-300 hover:text-brand-700',
+                )}
+              >
+                <Icon size={13} className={active ? 'text-brand-400' : 'text-neutral-400'} />
+                {c}
+                <span className={cn('text-[10.5px] font-bold', active ? 'text-brand-400' : 'text-neutral-400')}>{countFor('category', c)}</span>
+              </button>
+            )
+          })}
         </FilterRow>
         <FilterRow label="Roles">
           {allRoles.map((r) => (
@@ -164,7 +218,7 @@ export default function Marketplace() {
         </FilterRow>
       </div>
 
-      {/* Result bar */}
+      {/* ─── Result bar ─── */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 pt-5">
         <div className="flex items-center gap-3">
           <p className="text-sm font-semibold text-neutral-700">{pluralize(results.length, 'skill')}</p>
@@ -177,7 +231,7 @@ export default function Marketplace() {
         <Dropdown label="Sort" value={sort} options={sortOptions} onChange={(v) => setParam('sort', v)} />
       </div>
 
-      {/* Grid */}
+      {/* ─── Grid ─── */}
       <StateGate
         loading={<SkillGridSkeleton />}
         empty={

@@ -4,7 +4,7 @@ A complete, high-fidelity UI mock of Orvex Prompt Studio: all 24 pages from
 [mock.md](./mock.md), fully interactive, running on mock data.
 
 **Stack:** Vite + React 18 + Tailwind CSS v4 + `react-router-dom` + `lucide-react`.
-**Brand:** `#8000FF` on white/black.
+**Brand:** Orange/White/Black (90-7-3): International Orange `#FF5A00` (fire) / `#F04E00` (workhorse), pure white surfaces, ink black `#0B0B0C`, zinc support grays. Semantic states are mono (black badges, outline warnings) — no reds or greens.
 
 ## Run it
 
@@ -69,12 +69,16 @@ The mock is deliberately structured for lifting:
   Modal, Tabs, EmptyState, …) in one dependency-free file. Copy it first;
   everything else builds on it.
 - **`src/components/skills.jsx`** — SkillCard, signal rows, block renderers.
+- **`src/components/viz.jsx`** — dependency-free SVG charts (Sparkline,
+  TrendChart, WeekBars, RatingBars) plus VersionTimeline, ForkTree and the
+  per-category cover art. Charts read theme CSS vars, so they adapt to dark
+  mode automatically.
 - **`src/pages/*.jsx`** — each page is self-contained; it imports only the UI
   kit, `lib/utils`, and mock data.
 - **`src/data/mock.js`** — the *only* place data comes from. To wire a page to
   your backend, replace its imports from `data/mock` with your API calls; the
   components consume plain shapes (documented by example in that file).
-- **`src/index.css`** — the design tokens (brand scale for `#8000FF`, shadows,
+- **`src/index.css`** — the design tokens (the ochre brand scale, bone surfaces, shadows,
   animations, and the entire dark theme). If your project doesn't use Tailwind v4 yet:
   `npm i tailwindcss @tailwindcss/vite`, add the plugin to `vite.config.js`,
   and import this CSS. It coexists fine with existing styles.

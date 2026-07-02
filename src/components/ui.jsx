@@ -9,20 +9,22 @@ import { useViewState, useSimulatedLoad } from '../context/AppContext'
 
 // ─── Button ──────────────────────────────────────────────────────────────────
 const BTN_VARIANTS = {
+  // The 3% fire: primary actions are solid International Orange with ink text.
   primary:
-    'bg-gradient-to-br from-brand-600 to-brand-500 text-white shadow-glow-sm hover:shadow-glow hover:brightness-110 active:scale-[0.985]',
+    'bg-brand-500 font-bold text-ink-950 shadow-glow-sm hover:brightness-95 active:scale-[0.985]',
   dark:
     'bg-ink-950 text-white hover:bg-ink-800 active:scale-[0.985]',
   secondary:
     'bg-brand-50 text-brand-700 ring-1 ring-brand-200/70 ring-inset hover:bg-brand-100',
   outline:
-    'bg-surface text-neutral-800 ring-1 ring-neutral-200 ring-inset shadow-soft hover:ring-neutral-300 hover:bg-neutral-50',
+    'bg-surface text-neutral-800 ring-1 ring-neutral-300 ring-inset hover:ring-neutral-900',
   ghost:
     'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900',
+  // Destructive is structural, not red: an unmistakable mono block.
   danger:
-    'bg-rose-600 text-white hover:bg-rose-700 active:scale-[0.985]',
+    'bg-neutral-900 font-bold text-neutral-50 hover:opacity-90 active:scale-[0.985]',
   dangerGhost:
-    'text-rose-600 ring-1 ring-rose-200 ring-inset hover:bg-rose-50',
+    'font-bold text-neutral-900 ring-1 ring-neutral-400 ring-inset hover:bg-neutral-900 hover:text-neutral-50',
 }
 const BTN_SIZES = {
   xs: 'h-7 px-2.5 text-xs gap-1.5 rounded-lg',
@@ -50,10 +52,12 @@ export function Button({ variant = 'primary', size = 'md', className, children, 
 const BADGE_VARIANTS = {
   neutral: 'bg-neutral-100 text-neutral-600',
   brand: 'bg-brand-50 text-brand-700 ring-1 ring-brand-100 ring-inset',
-  solid: 'bg-brand-600 text-white',
-  success: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 ring-inset',
-  warning: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/70 ring-inset',
-  danger: 'bg-rose-50 text-rose-700 ring-1 ring-rose-100 ring-inset',
+  solid: 'bg-brand-500 text-ink-950 font-bold',
+  // Semantic states stay inside the mono system: success = solid black,
+  // warning = crisp outline, danger = black with the fire for text.
+  success: 'bg-neutral-900 text-neutral-50',
+  warning: 'text-neutral-500 ring-1 ring-neutral-300 ring-inset',
+  danger: 'bg-neutral-900 text-brand-500',
   outline: 'text-neutral-500 ring-1 ring-neutral-200 ring-inset',
   dark: 'bg-ink-950 text-white',
 }
@@ -75,7 +79,7 @@ export function Card({ className, hover = false, children, ...props }) {
     <div
       className={cn(
         'rounded-2xl bg-surface ring-1 ring-neutral-200/80 ring-inset',
-        hover && 'shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift hover:ring-brand-200',
+        hover && 'transition-all duration-200 hover:-translate-y-0.5 hover:ring-neutral-900',
         className,
       )}
       {...props}
@@ -191,13 +195,13 @@ export function Chip({ active, onClick, children, count }) {
       className={cn(
         'inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium transition-all duration-200',
         active
-          ? 'bg-neutral-900 text-neutral-50 shadow-soft'
+          ? 'bg-brand-500 text-ink-950'
           : 'bg-surface text-neutral-600 ring-1 ring-neutral-200 ring-inset hover:ring-neutral-300 hover:text-neutral-900',
       )}
     >
       {children}
       {count != null && (
-        <span className={cn('text-[11px] font-bold', active ? 'text-brand-400' : 'text-neutral-400')}>{count}</span>
+        <span className={cn('text-[11px] font-bold', active ? 'text-ink-950/60' : 'text-neutral-400')}>{count}</span>
       )}
     </button>
   )
@@ -309,8 +313,8 @@ export function EmptyState({ icon: Icon = Inbox, title, body, action, className 
 
 export function ErrorState({ onRetry, title = 'Something went wrong', body = 'We couldn’t load this. It’s us, not you — try again.', className }) {
   return (
-    <div className={cn('animate-fade-up flex flex-col items-center justify-center rounded-3xl bg-surface px-8 py-16 text-center ring-1 ring-rose-100 ring-inset', className)}>
-      <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-rose-50 text-rose-500">
+    <div className={cn('animate-fade-up flex flex-col items-center justify-center rounded-3xl bg-surface px-8 py-16 text-center ring-1 ring-neutral-200 ring-inset', className)}>
+      <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-neutral-900 text-brand-500">
         <AlertTriangle size={26} strokeWidth={1.8} />
       </div>
       <h3 className="font-display mb-1.5 text-[17px] font-bold text-neutral-900">{title}</h3>

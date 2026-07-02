@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Copy, Globe, Layers, Link2, Lock, Plus, Sparkles } from 'lucide-react'
+import { Copy, Globe, Layers, Link2, Lock, Plus } from 'lucide-react'
 import { collections, skillById } from '../data/mock'
 import { copyText, pluralize } from '../lib/utils'
+import Logo from '../components/Logo'
 import { Badge, Button, Card, EmptyState, Field, Input, Modal, SectionHeading, Skeleton, StateGate, Toggle } from '../components/ui'
 import { SkillCard } from '../components/skills'
 import { useToast } from '../context/AppContext'
@@ -133,11 +134,8 @@ export function SharedCollection() {
     <div className="min-h-screen bg-canvas">
       <header className="glass sticky top-0 z-30 border-b border-neutral-200/60">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5">
-          <Link to="/" className="flex items-center gap-2.5">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-brand-600 to-brand-400">
-              <Sparkles size={15} className="text-white" />
-            </span>
-            <span className="font-display text-[15px] font-bold text-neutral-900">Orvex</span>
+          <Link to="/" className="flex items-center">
+            <Logo className="text-2xl" />
           </Link>
           <Link to="/signup"><Button size="sm">Get started free</Button></Link>
         </div>

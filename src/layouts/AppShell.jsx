@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   Activity, Archive, BookOpen, Brain, FolderOpen, Home, Inbox, Layers,
-  LibraryBig, LogOut, Moon, Plus, Search, Settings, ShieldCheck, Sparkles,
-  Store, Sun, UserRoundCheck, Users, Menu, X,
+  LibraryBig, LogOut, Moon, Plus, Search, Settings, ShieldCheck,
+  Store, Sun, UserRoundCheck, Menu, X,
 } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { currentUser, drafts, librarianItems, suggestions } from '../data/mock'
 import { Avatar, Button } from '../components/ui'
+import Logo from '../components/Logo'
 import { useTheme } from '../context/AppContext'
 
 const NAV = [
@@ -43,13 +44,8 @@ function SideNav({ onNavigate }) {
   return (
     <div className="flex h-full flex-col">
       {/* Logo */}
-      <Link to="/app" onClick={onNavigate} className="mb-6 flex items-center gap-2.5 px-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 rounded-lg">
-        <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-600 to-brand-400 shadow-glow-sm">
-          <Sparkles size={18} className="text-white" />
-        </span>
-        <span className="font-display text-[17px] font-bold tracking-tight text-neutral-900">
-          Orvex <span className="text-neutral-400 font-medium">Studio</span>
-        </span>
+      <Link to="/app" onClick={onNavigate} className="mb-6 flex items-center px-2 py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 rounded-lg">
+        <Logo className="text-2xl" />
       </Link>
 
       {/* Nav groups */}

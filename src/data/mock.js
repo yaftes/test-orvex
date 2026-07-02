@@ -400,6 +400,7 @@ export const generatedSkills = GEN_TITLES.flatMap(([title, category, tagline, tg
       id: `sk_gen_${idx}`,
       title: variant === 0 ? title : `${title} (Team Edition)`,
       tagline: variant === 0 ? tagline : `${tagline} Built for shared team workflows.`,
+      basedOn: variant === 1 ? { id: `sk_gen_${idx - 1}`, title } : null,
       category, roles: rl, tags: tg,
       version: `${1 + (idx % 3)}.${idx % 6}.0`,
       stars, starredByMe: false,
@@ -408,7 +409,7 @@ export const generatedSkills = GEN_TITLES.flatMap(([title, category, tagline, tg
       rating: 4 + ((idx % 9) / 10), reviewCount: (idx * 3) % 60,
       creatorId: GEN_CREATORS[idx % GEN_CREATORS.length],
       updatedAt: daysAgo((idx % 40) + 1), publishedAt: daysAgo((idx % 300) + 10),
-      isNew, deprecated: false, basedOn: null,
+      isNew, deprecated: false,
       blocks: [
         { id: 'b1', section: 'Role', title: 'Who the AI becomes', content: `You are an experienced practitioner focused on one job: ${tagline.toLowerCase()}` },
         { id: 'b2', section: 'Instructions', title: 'How it works', content: 'It asks for the minimum context it needs, works in clearly labeled steps, and always explains what it would need to do a better job.' },
@@ -424,6 +425,54 @@ export const generatedSkills = GEN_TITLES.flatMap(([title, category, tagline, tg
 
 export const allSkills = [...skills, ...generatedSkills]
 export const skillById = (id) => allSkills.find((s) => s.id === id)
+
+/** Marketplace skills forked from this one (its direct children). */
+export const forksOf = (id) => allSkills.filter((s) => s.basedOn?.id === id)
+
+/** Your own draft copies of this skill. */
+export const myForksOf = (id) => drafts.forked.filter((d) => d.basedOn?.id === id)
+
+/**
+ * Deterministic weekly time-series for a skill — the mock stand-in for real
+ * analytics. Same id always yields the same curve; trending skills trend up.
+ */
+export function seriesFor(id, weeks = 12) {
+  let h = 7
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) & 0x7fffffff
+  const rand = () => {
+    h = (h * 1103515245 + 12345) & 0x7fffffff
+    return h / 0x7fffffff
+  }
+  const skill = skillById(id)
+  const heat = skill ? Math.min(1, skill.forksWeek / 30) : 0.4
+  const out = []
+  let level = 2 + rand() * 4
+  for (let i = 0; i < weeks; i++) {
+    level += rand() * (2.5 + heat * 6) - 1 + heat * (i / weeks) * 2.2
+    level = Math.max(0.5, level)
+    out.push(Math.round(level * 10) / 10)
+  }
+  return out
+}
+
+/** Cumulative star curve ending at the skill's real star count. */
+export function starCurveFor(skill, weeks = 12) {
+  const deltas = seriesFor(`stars:${skill.id}`, weeks)
+  const sum = deltas.reduce((a, b) => a + b, 0)
+  let acc = Math.max(0, skill.stars * 0.55)
+  const scale = (skill.stars - acc) / sum
+  return deltas.map((d) => Math.round((acc += d * scale)))
+}
+
+/** Rating distribution (5→1 stars) consistent with the skill's average. */
+export function ratingDistFor(skill) {
+  const r = skill.rating ?? 4.5
+  const n = Math.max(1, skill.reviewCount ?? 1)
+  const five = Math.max(0.05, (r - 3.4) / 1.6)
+  const weights = [five, 0.72 * five, 0.18, 0.07, 0.04]
+  const total = weights.reduce((a, b) => a + b, 0)
+  return weights.map((w) => Math.round((w / total) * n))
+}
 
 // ——— Comments & reviews (for flagship skills) ———
 export const commentsBySkill = {
@@ -575,6 +624,7 @@ export const memorySections = [
     id: 'ms_context', title: 'Your world', icon: 'globe',
     entries: [
       { id: 'me_6', q: 'Tools and stack', a: 'React, Vite, Tailwind, Node, Postgres. We deploy on Fridays (yes, really).' },
+      { id: 'me_7', q: 'Private context', a: 'Prepping a stealth feature called “Atlas” for the July launch — keep it out of anything public.', sensitive: true },
     ],
   },
 ]

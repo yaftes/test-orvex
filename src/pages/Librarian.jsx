@@ -1,25 +1,29 @@
 import { useMemo, useState } from 'react'
 import {
-  ArrowRight, BookOpen, Brain, Cable, Check, Copy, Eye, GitMerge,
-  LibraryBig, Lock, MessageCircle, Plug, RefreshCw, Send, Sparkles,
-  Trash2, X, KeyRound,
+  BookOpen, Brain, Cable, Check, Copy, GitMerge, LibraryBig, Lock,
+  Plug, RefreshCw, Send, Stamp, Trash2, KeyRound, ArrowRight,
 } from 'lucide-react'
 import { librarianConnections, librarianItems, shelves } from '../data/mock'
 import { cn, copyText, timeAgo } from '../lib/utils'
 import {
-  Badge, Button, Card, ConfirmDialog, EmptyState, Input, Modal,
-  SectionHeading, Skeleton, StateGate,
+  Button, Card, ConfirmDialog, EmptyState, Modal, Skeleton, StateGate,
 } from '../components/ui'
 import { useToast } from '../context/AppContext'
 
-const SHELF_ICONS = { wiki: BookOpen, memory: Brain, trash: Trash2 }
-
-const PROPOSAL_META = {
-  new: { label: 'File as new', variant: 'brand', icon: ArrowRight },
-  update: { label: 'Update existing', variant: 'warning', icon: RefreshCw },
-  merge: { label: 'Merge duplicate', variant: 'warning', icon: GitMerge },
-  discard: { label: 'Discard', variant: 'danger', icon: Trash2 },
+const SHELF_META = {
+  wiki: { icon: BookOpen, tag: 'SHELF 1' },
+  memory: { icon: Brain, tag: 'SHELF 2' },
+  trash: { icon: Trash2, tag: 'OUT-BIN' },
 }
+
+const KIND_META = {
+  new: { stamp: 'SHELVE · ADD', icon: Stamp, action: 'Stamp & file' },
+  update: { stamp: 'UPDATE PAGE', icon: RefreshCw, action: 'Apply update' },
+  merge: { stamp: 'MERGE · DUPE', icon: GitMerge, action: 'Merge them' },
+  discard: { stamp: 'DISCARD', icon: Trash2, action: 'Discard' },
+}
+
+const DEST_LABEL = { wiki: 'YOUR WIKI', memory: 'MEMORY', trash: 'OUT-BIN' }
 
 export default function Librarian() {
   const toast = useToast()
@@ -37,59 +41,58 @@ export default function Librarian() {
     setFiledTally((t) => ({ ...t, [item.proposal.destination]: t[item.proposal.destination] + 1 }))
     if (!quiet) {
       const dest = shelves.find((s) => s.id === item.proposal.destination)
-      toast(item.proposal.kind === 'discard' ? 'Discarded' : `Filed to ${dest.name} ✓`)
+      toast(item.proposal.kind === 'discard' ? 'Discarded' : `Stamped & filed to ${dest.name} ✓`)
     }
   }
 
   const fileAllSafe = () => {
     safeItems.forEach((i) => fileItem(i, true))
-    toast(`Filed ${safeItems.length} safe item${safeItems.length === 1 ? '' : 's'} ✓`)
+    toast(`Filed ${safeItems.length} safe addition${safeItems.length === 1 ? '' : 's'} ✓`)
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-7">
-      {/* Header */}
-      <div className="animate-fade-up flex flex-wrap items-end justify-between gap-4">
+    <div className="relative mx-auto max-w-5xl space-y-6">
+      {/* desk-lamp glow + speckle */}
+      <div aria-hidden className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[42rem] -translate-x-1/2 rounded-full bg-brand-500/12 blur-[100px]" />
+      <div aria-hidden className="pointer-events-none absolute inset-0 bg-dot-grid opacity-25" />
+
+      {/* ─── Desk header ─── */}
+      <div className="animate-fade-up grid items-start gap-6 lg:grid-cols-[1fr_auto]">
         <div>
-          <h1 className="font-display flex items-center gap-2.5 text-[26px] font-bold tracking-tight text-neutral-900">
-            The Librarian
-            {items.length > 0 && (
-              <span className="grid h-7 min-w-7 place-items-center rounded-full bg-brand-600 px-2 text-[13px] font-bold text-white shadow-glow-sm">
-                {items.length}
-              </span>
-            )}
-          </h1>
-          <p className="mt-1 text-sm text-neutral-500">New captures from your AI sessions, ready to review and file.</p>
+          <div className="bubble-dark inline-flex items-center gap-3.5 rounded-2xl py-3.5 pr-7 pl-4">
+            <span className="glow-icon grid h-12 w-12 place-items-center rounded-2xl"><LibraryBig size={22} /></span>
+            <div>
+              <h1 className="font-display text-2xl font-bold tracking-tight text-white">The Librarian</h1>
+              <p className="text-[10.5px] font-bold tracking-[0.28em] text-zinc-500 uppercase">The sorting desk</p>
+            </div>
+          </div>
+          <p className="font-hand mt-4 max-w-md text-[24px] leading-snug text-neutral-700">
+            “Pull up a chair. Fresh captures have been landing — let’s find each one a proper home.”
+          </p>
+          <p className="font-typewriter mt-1 text-[12px] text-brand-600">— your Librarian, on duty</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setConnectOpen(true)}>
-          <Cable size={14} /> Connect a client
-        </Button>
+        <div className="flex flex-row items-center gap-6 lg:flex-col lg:items-end lg:gap-3">
+          <div className="text-right">
+            <p className="glow-count font-display text-6xl leading-none font-bold text-brand-500">{items.length}</p>
+            <p className="mt-1 text-[10px] font-bold tracking-[0.25em] text-neutral-400 uppercase">slips awaiting filing</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => setConnectOpen(true)}>
+            <Cable size={14} /> Connect a client
+          </Button>
+        </div>
       </div>
 
-      {/* Shelves */}
-      <div className="grid grid-cols-3 gap-3">
-        {shelves.map((shelf, i) => {
-          const Icon = SHELF_ICONS[shelf.id]
-          return (
-            <Card key={shelf.id} className="animate-fade-up p-4 text-center sm:p-5" style={{ animationDelay: `${i * 60}ms` }}>
-              <span className={cn(
-                'mx-auto mb-2.5 grid h-10 w-10 place-items-center rounded-xl',
-                shelf.id === 'wiki' && 'bg-brand-50 text-brand-600',
-                shelf.id === 'memory' && 'bg-sky-50 text-sky-600',
-                shelf.id === 'trash' && 'bg-neutral-100 text-neutral-400',
-              )}>
-                <Icon size={19} />
-              </span>
-              <p className="font-display text-xl font-bold text-neutral-900">{shelf.count + filedTally[shelf.id]}</p>
-              <p className="text-[12.5px] font-bold text-neutral-700">{shelf.name}</p>
-              <p className="text-[11px] text-neutral-400">{shelf.description}</p>
-            </Card>
-          )
-        })}
+      {/* ─── Status strip ─── */}
+      <div className="bubble-dark animate-fade-up flex flex-wrap items-center justify-between gap-3 rounded-2xl px-5 py-3.5 text-white">
+        <p className="font-typewriter text-[13px]">
+          <span className="text-brand-400">The Librarian</span>
+          <span className="text-zinc-300"> · reading your pile, item by item — I’ll file each capture into your Wiki or Memory.</span>
+        </p>
+        <span className="font-typewriter text-[13px] text-zinc-400">{items.length} to sort</span>
       </div>
 
       <StateGate
-        loading={<div className="space-y-3">{Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-40 rounded-2xl" />)}</div>}
+        loading={<div className="space-y-4">{Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-48 rounded-2xl" />)}</div>}
         empty={<CaughtUp tally={{ wiki: 3, memory: 2, trash: 1 }} />}
       >
         {items.length === 0 ? (
@@ -102,42 +105,87 @@ export default function Librarian() {
             />
           )
         ) : (
-          <div className="space-y-8">
-            {/* Safe batch */}
-            {safeItems.length > 0 && (
-              <section>
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                  <SectionHeading
-                    className="mb-0"
-                    title="Safe to file at once"
-                    sub="These only add something new — they don’t touch anything existing"
-                  />
-                  <Button size="sm" onClick={fileAllSafe}>
-                    <Sparkles size={14} /> File all {safeItems.length} safe ones
-                  </Button>
-                </div>
-                <div className="space-y-3">
-                  {safeItems.map((item) => (
-                    <InTrayItem key={item.id} item={item} onAction={() => fileItem(item)} onDestructive={() => setConfirmItem(item)} />
-                  ))}
-                </div>
-              </section>
-            )}
+          <div className="grid gap-6 lg:grid-cols-[1fr_290px]">
+            {/* ─── In-tray ─── */}
+            <section className="min-w-0">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <span className="font-typewriter rounded-lg bg-brand-500 px-3 py-1 text-[12px] font-bold tracking-[0.18em] text-ink-950 uppercase">In-tray</span>
+                <span className="font-typewriter text-[12px] text-neutral-400">
+                  <span className="text-brand-600">{items.length}</span> to review · oldest first
+                </span>
+              </div>
 
-            {/* Held back */}
-            {heldItems.length > 0 && (
-              <section>
-                <SectionHeading
-                  title="Held back for your review"
-                  sub="Updates, merges, and anything sensitive — these always wait for a human eye"
-                />
-                <div className="space-y-3">
-                  {heldItems.map((item) => (
-                    <InTrayItem key={item.id} item={item} onAction={() => (item.proposal.kind === 'discard' ? setConfirmItem(item) : fileItem(item))} onDestructive={() => setConfirmItem(item)} />
-                  ))}
+              <div className="space-y-6">
+                {safeItems.map((item, i) => (
+                  <DeskItem key={item.id} item={item} index={i} onAction={() => fileItem(item)} onDestructive={() => setConfirmItem(item)} />
+                ))}
+
+                {heldItems.length > 0 && (
+                  <div className="flex items-center gap-3 pt-2" aria-hidden>
+                    <span className="h-px flex-1 bg-neutral-200" />
+                    <span className="font-typewriter text-[11px] font-bold tracking-[0.22em] text-neutral-400 uppercase">Held back for your eye</span>
+                    <span className="h-px flex-1 bg-neutral-200" />
+                  </div>
+                )}
+
+                {heldItems.map((item, i) => (
+                  <DeskItem
+                    key={item.id}
+                    item={item}
+                    index={i + safeItems.length}
+                    onAction={() => (item.proposal.kind === 'discard' ? setConfirmItem(item) : fileItem(item))}
+                    onDestructive={() => setConfirmItem(item)}
+                  />
+                ))}
+              </div>
+            </section>
+
+            {/* ─── Pigeonholes rail ─── */}
+            <aside className="space-y-4">
+              <p className="font-typewriter text-[11px] font-bold tracking-[0.28em] text-neutral-400 uppercase">Pigeonholes</p>
+              {shelves.map((shelf) => {
+                const meta = SHELF_META[shelf.id]
+                return (
+                  <div key={shelf.id} className="bubble-dark flex items-center gap-3.5 rounded-2xl p-4 text-white transition-transform hover:scale-[1.015]">
+                    <span className={cn(
+                      'grid h-10 w-10 shrink-0 place-items-center rounded-xl',
+                      shelf.id === 'trash' ? 'bg-white/8 text-zinc-400' : 'glow-icon',
+                    )}>
+                      <meta.icon size={17} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-baseline gap-2">
+                        <span className="font-typewriter text-[14px] font-bold text-white">{shelf.name}</span>
+                        <span className="font-typewriter text-[9.5px] tracking-[0.2em] text-brand-400 uppercase">{meta.tag}</span>
+                      </span>
+                      <span className="block truncate text-[12px] text-zinc-500">{shelf.description}</span>
+                    </span>
+                    <span className="glow-count font-display text-2xl font-bold text-brand-400 tabular-nums">{shelf.count + filedTally[shelf.id]}</span>
+                  </div>
+                )
+              })}
+
+              {/* Quick-file */}
+              <div className="bubble-dark space-y-4 rounded-2xl p-5 text-white">
+                <p className="font-typewriter text-[11px] font-bold tracking-[0.24em] text-white uppercase">Quick-file</p>
+                <p className="text-[13px] leading-relaxed text-zinc-400">
+                  The Librarian can stamp the <span className="font-semibold text-brand-400">safe additions</span> in one
+                  motion — captures that only add to a shelf and touch nothing existing.
+                </p>
+                <Button className="w-full !shadow-glow-sm" size="sm" disabled={safeItems.length === 0} onClick={fileAllSafe}>
+                  <Check size={15} /> Approve all safe adds ({safeItems.length})
+                </Button>
+                <div>
+                  <p className="font-typewriter mb-2 text-[11.5px] font-bold text-brand-400">Held back for your eye</p>
+                  <ul className="space-y-1.5 font-typewriter text-[11.5px] leading-relaxed text-zinc-500">
+                    <li>· edits an existing page</li>
+                    <li>· merges a possible duplicate</li>
+                    <li>· is a discard — it can’t be undone</li>
+                    <li>· is sealed — it contains secrets</li>
+                  </ul>
                 </div>
-              </section>
-            )}
+              </div>
+            </aside>
           </div>
         )}
       </StateGate>
@@ -148,7 +196,7 @@ export default function Librarian() {
         onClose={() => setConfirmItem(null)}
         onConfirm={() => confirmItem && fileItem(confirmItem)}
         title="Discard this capture?"
-        body="It’ll go to the trash shelf. You’re not deleting any existing Wiki or Memory content — just this capture."
+        body="It’ll go to the out-bin. You’re not deleting any existing Wiki or Memory content — just this capture."
         confirmLabel="Yes, discard it"
       />
 
@@ -157,15 +205,15 @@ export default function Librarian() {
   )
 }
 
-// ─── One in-tray item ────────────────────────────────────────────────────────
-function InTrayItem({ item, onAction, onDestructive }) {
+// ─── One desk item: paper slip + Librarian bubble ────────────────────────────
+function DeskItem({ item, index, onAction, onDestructive }) {
+  const toast = useToast()
   const [unsealed, setUnsealed] = useState(false)
-  const [chatOpen, setChatOpen] = useState(false)
   const [question, setQuestion] = useState('')
   const [thread, setThread] = useState(item.conversation)
-  const meta = PROPOSAL_META[item.proposal.kind]
-  const destination = shelves.find((s) => s.id === item.proposal.destination)
+  const kind = KIND_META[item.proposal.kind]
   const sealed = item.sensitive && !unsealed
+  const tilt = index % 2 === 0 ? 'rotate-[-0.5deg]' : 'rotate-[0.45deg]'
 
   const ask = () => {
     if (!question.trim()) return
@@ -175,119 +223,128 @@ function InTrayItem({ item, onAction, onDestructive }) {
       { who: 'librarian', text: 'Good question. My suggestion is based only on what’s in this capture and what already exists on your shelves — if you file it differently, I’ll learn from that choice.' },
     ])
     setQuestion('')
+    toast('Reply noted', 'info')
   }
 
   return (
-    <Card className={cn('animate-fade-up overflow-hidden', item.sensitive && 'ring-amber-200')}>
-      {/* Header row */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-neutral-100 px-5 py-3">
-        <Badge variant={meta.variant}><meta.icon size={11} /> {meta.label}</Badge>
-        <span className="flex items-center gap-1 text-[12px] font-semibold text-neutral-400">
-          <ArrowRight size={11} /> {destination.name}
-        </span>
-        {item.sensitive && <Badge variant="warning"><Lock size={11} /> Sensitive — sealed</Badge>}
-        <span className="ml-auto text-[11.5px] text-neutral-400">{item.source} · {timeAgo(item.capturedAt)}</span>
-      </div>
-
-      <div className="space-y-4 p-5">
-        {/* Preview (sealed if sensitive) */}
-        {sealed ? (
-          <button
-            onClick={() => setUnsealed(true)}
-            className="flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-xl bg-amber-50/70 py-6 text-[13px] font-bold text-amber-700 ring-1 ring-amber-200/70 ring-inset transition-all hover:bg-amber-50"
-          >
-            <Eye size={15} /> This capture is sealed — click to reveal its contents
-          </button>
-        ) : (
-          <p className={cn('rounded-xl bg-neutral-50 p-4 text-[13.5px] leading-relaxed text-neutral-700 ring-1 ring-neutral-200/60 ring-inset', item.sensitive && 'animate-fade-in')}>
-            {item.preview}
-          </p>
-        )}
-
-        {/* The Librarian's reasoning */}
-        <div className="flex gap-3">
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-brand-600 to-brand-400 text-white">
-            <LibraryBig size={14} />
+    <div className="animate-fade-up grid gap-4 md:grid-cols-2" style={{ animationDelay: `${(index % 6) * 60}ms` }}>
+      {/* The slip */}
+      {sealed ? (
+        <button
+          onClick={() => setUnsealed(true)}
+          className={cn('relative flex min-h-44 cursor-pointer flex-col items-center justify-center gap-3 rounded-md bg-ink-950 p-6 text-center shadow-lift ring-1 ring-white/10 ring-inset transition-transform hover:scale-[1.01]', tilt)}
+        >
+          <span className="tape -top-2 left-8 rotate-[-5deg]" aria-hidden />
+          <Lock size={20} className="text-brand-500" />
+          <span className="font-typewriter text-[13px] font-bold tracking-[0.2em] text-white uppercase">Sealed</span>
+          <span className="font-typewriter text-[12px] leading-relaxed text-zinc-400">
+            Contains secrets. Never filed automatically —<br />click to open it under your eye.
           </span>
-          <p className="rounded-2xl rounded-tl-sm bg-brand-50/80 px-4 py-3 text-[13px] leading-relaxed text-brand-950">
-            {item.proposal.reason}
+        </button>
+      ) : (
+        <div className={cn('paper relative rounded-md p-5 shadow-lift ring-1 ring-zinc-200 ring-inset', tilt)}>
+          <span className="tape -top-2 left-8 rotate-[-5deg]" aria-hidden />
+
+          <div className="mb-3 flex items-start justify-between gap-2">
+            <span className="font-typewriter inline-flex items-center gap-1.5 rounded-sm border-2 border-zinc-800 px-2 py-1 text-[10.5px] font-bold tracking-[0.14em] text-zinc-800 uppercase">
+              <kind.icon size={11} /> {kind.stamp}
+            </span>
+            <span className="font-typewriter rounded-sm border border-dashed border-brand-600 px-2 py-1 text-[10px] font-bold tracking-[0.14em] text-brand-600 uppercase">
+              {DEST_LABEL[item.proposal.destination]}
+            </span>
+          </div>
+
+          <p className="font-typewriter mb-1 text-[10px] tracking-[0.2em] text-zinc-400 uppercase">Type · {item.proposal.kind === 'new' ? 'capture' : item.proposal.kind}</p>
+          <p className="font-typewriter text-[13.5px] leading-relaxed text-zinc-800">{item.preview}</p>
+
+          {item.diff && (
+            <div className="mt-4 space-y-2 border-t border-dashed border-zinc-300 pt-3">
+              <div>
+                <p className="font-typewriter mb-1 text-[9.5px] font-bold tracking-[0.2em] text-zinc-400 uppercase">Current entry</p>
+                <p className="font-typewriter rounded-sm bg-zinc-100 px-2.5 py-2 text-[12px] leading-relaxed text-zinc-500">{item.diff.before}</p>
+              </div>
+              <div>
+                <p className="font-typewriter mb-1 text-[9.5px] font-bold tracking-[0.2em] text-brand-600 uppercase">After {item.proposal.kind}</p>
+                <p className="font-typewriter rounded-sm bg-orange-50 px-2.5 py-2 text-[12px] leading-relaxed text-zinc-700">{item.diff.after}</p>
+              </div>
+            </div>
+          )}
+
+          <p className="font-typewriter mt-4 text-[11px] text-zinc-400">
+            captured <span className="font-bold text-zinc-600">{timeAgo(item.capturedAt)}</span> · {item.source}
           </p>
         </div>
+      )}
 
-        {/* Before/after for update & merge (sensitive fields stay hidden) */}
-        {item.diff && !sealed && (
-          <div className="grid gap-2.5 sm:grid-cols-2">
-            <div className="rounded-xl bg-rose-50/60 p-3.5 ring-1 ring-rose-100 ring-inset">
-              <p className="mb-1 text-[10.5px] font-bold tracking-widest text-rose-400 uppercase">Current entry</p>
-              <p className="text-[12.5px] leading-relaxed text-neutral-600">{item.diff.before}</p>
-            </div>
-            <div className="rounded-xl bg-emerald-50/60 p-3.5 ring-1 ring-emerald-100 ring-inset">
-              <p className="mb-1 text-[10.5px] font-bold tracking-widest text-emerald-500 uppercase">After {item.proposal.kind}</p>
-              <p className="text-[12.5px] leading-relaxed text-neutral-700">{item.diff.after}</p>
-            </div>
+      {/* The Librarian's bubble */}
+      <div className="bubble-dark flex flex-col rounded-2xl p-5 text-white">
+        <div className="mb-3 flex items-center gap-2.5">
+          <span className="glow-icon grid h-8 w-8 shrink-0 place-items-center rounded-full"><LibraryBig size={14} /></span>
+          <div>
+            <p className="text-[13px] font-bold">The Librarian</p>
+            <p className="font-typewriter text-[10.5px] tracking-[0.14em] text-zinc-500 uppercase">deciding where this capture belongs</p>
           </div>
-        )}
+        </div>
 
-        {/* Conversation thread */}
-        {(chatOpen || thread.length > 0) && (
-          <div className="space-y-2.5">
+        <p className="rounded-xl bg-white/6 p-3.5 text-[13.5px] leading-relaxed text-zinc-200 ring-1 ring-white/8 ring-inset">
+          {item.proposal.reason}
+        </p>
+
+        {thread.length > 0 && (
+          <div className="mt-3 space-y-2">
             {thread.map((m, i) => (
-              <div key={i} className={cn('flex gap-2.5', m.who === 'you' && 'justify-end')}>
-                {m.who === 'librarian' && (
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-neutral-100 text-neutral-500"><LibraryBig size={12} /></span>
-                )}
-                <p className={cn(
-                  'max-w-[85%] rounded-2xl px-3.5 py-2 text-[12.5px] leading-relaxed',
-                  m.who === 'you' ? 'rounded-br-sm bg-neutral-900 text-neutral-50' : 'rounded-tl-sm bg-neutral-100 text-neutral-700',
-                )}>
-                  {m.text}
-                </p>
-              </div>
+              <p key={i} className={cn(
+                'max-w-[90%] rounded-xl px-3 py-2 text-[12.5px] leading-relaxed',
+                m.who === 'you' ? 'ml-auto rounded-br-sm bg-brand-500 text-ink-950' : 'rounded-tl-sm bg-white/8 text-zinc-300',
+              )}>
+                {m.text}
+              </p>
             ))}
-            {chatOpen && (
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Ask about this item…"
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && ask()}
-                  className="h-9"
-                />
-                <Button size="sm" variant="secondary" onClick={ask} disabled={!question.trim()} aria-label="Send question">
-                  <Send size={14} />
-                </Button>
-              </div>
-            )}
           </div>
         )}
 
-        {/* Actions */}
-        <div className="flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-4">
+        <div className="mt-4 flex flex-wrap items-center gap-2">
           {item.proposal.kind === 'discard' ? (
-            <Button size="sm" variant="dangerGhost" onClick={onDestructive} disabled={sealed}>
+            <button
+              onClick={onDestructive}
+              disabled={sealed}
+              className="inline-flex h-8.5 cursor-pointer items-center gap-1.5 rounded-[10px] bg-white/10 px-3.5 text-[13px] font-bold text-white ring-1 ring-white/20 ring-inset transition-all hover:bg-white/20 disabled:pointer-events-none disabled:opacity-40"
+            >
               <Trash2 size={14} /> Discard
-            </Button>
+            </button>
           ) : (
-            <Button size="sm" onClick={onAction} disabled={sealed}>
-              <Check size={14} />
-              {item.proposal.kind === 'new' ? `File to ${destination.name}` : item.proposal.kind === 'update' ? 'Apply update' : 'Merge them'}
-            </Button>
+            <>
+              <Button size="sm" onClick={onAction} disabled={sealed}>
+                {kind.action} <ArrowRight size={14} />
+              </Button>
+              <button
+                onClick={onDestructive}
+                disabled={sealed}
+                className="inline-flex h-8.5 cursor-pointer items-center gap-1.5 rounded-[10px] bg-white/8 px-3.5 text-[13px] font-semibold text-zinc-300 ring-1 ring-white/15 ring-inset transition-all hover:bg-white/15 disabled:pointer-events-none disabled:opacity-40"
+              >
+                Discard
+              </button>
+            </>
           )}
-          {item.proposal.kind !== 'discard' && (
-            <Button size="sm" variant="ghost" onClick={onDestructive}>
-              <X size={14} /> Discard instead
-            </Button>
-          )}
-          <button
-            onClick={() => setChatOpen((o) => !o)}
-            className="ml-auto flex cursor-pointer items-center gap-1.5 text-[12.5px] font-bold text-neutral-400 transition-colors hover:text-brand-600"
-          >
-            <MessageCircle size={14} /> Ask the Librarian
+          {sealed && <span className="font-typewriter w-full text-[11px] text-brand-400">sealed — open the slip before filing</span>}
+        </div>
+
+        {/* Reply */}
+        <div className="mt-4 flex gap-2 border-t border-white/8 pt-4">
+          <input
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && ask()}
+            placeholder="Reply to the Librarian…"
+            aria-label="Reply to the Librarian"
+            className="h-10 w-full rounded-xl bg-white/6 px-3.5 text-[13px] text-white ring-1 ring-white/10 ring-inset transition-all outline-none placeholder:text-zinc-500 focus:ring-2 focus:ring-brand-500"
+          />
+          <button onClick={ask} disabled={!question.trim()} aria-label="Send reply" className="grid h-10 w-11 shrink-0 cursor-pointer place-items-center rounded-xl bg-brand-500 text-ink-950 transition-all hover:brightness-95 disabled:pointer-events-none disabled:opacity-40">
+            <Send size={15} />
           </button>
-          {sealed && <span className="w-full text-[11.5px] text-amber-600">Sealed items can’t be filed until you review their contents.</span>}
         </div>
       </div>
-    </Card>
+    </div>
   )
 }
 
@@ -295,25 +352,26 @@ function InTrayItem({ item, onAction, onDestructive }) {
 function CaughtUp({ tally }) {
   const total = tally.wiki + tally.memory + tally.trash
   return (
-    <div className="animate-scale-in overflow-hidden rounded-3xl bg-ink-950 p-10 text-center text-white ring-1 ring-white/10 ring-inset">
-      <span className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-brand-600 to-brand-400 shadow-glow">
+    <div className="bubble-dark animate-scale-in overflow-hidden rounded-3xl p-10 text-center text-white">
+      <span className="glow-icon mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full">
         <Check size={30} strokeWidth={2.5} />
       </span>
-      <h2 className="font-display mb-2 text-2xl font-bold">All caught up 🎉</h2>
-      <p className="mx-auto mb-7 max-w-sm text-[14px] leading-relaxed text-zinc-400">
-        {total > 0 ? `You reviewed ${total} capture${total === 1 ? '' : 's'} this session. Here’s where everything went:` : 'The in-tray is empty. New captures will appear as you work.'}
+      <h2 className="font-display mb-2 text-2xl font-bold">All caught up</h2>
+      <p className="font-hand mx-auto mb-2 max-w-sm text-[22px] text-zinc-300">“A tidy desk. Lovely work.”</p>
+      <p className="font-typewriter mx-auto mb-7 max-w-sm text-[13px] leading-relaxed text-zinc-500">
+        {total > 0 ? `You reviewed ${total} capture${total === 1 ? '' : 's'} this session — here's where everything went:` : 'The in-tray is empty. New captures will appear as you work.'}
       </p>
       {total > 0 && (
-        <div className="mx-auto flex max-w-sm justify-center gap-8">
+        <div className="mx-auto flex max-w-sm justify-center gap-10">
           {[
             ['Your Wiki', tally.wiki, BookOpen],
             ['Memory', tally.memory, Brain],
-            ['Trash', tally.trash, Trash2],
+            ['Out-bin', tally.trash, Trash2],
           ].map(([name, n, Icon]) => (
             <div key={name}>
-              <Icon size={17} className="mx-auto mb-1.5 text-brand-300" />
+              <Icon size={17} className="mx-auto mb-1.5 text-brand-400" />
               <p className="font-display text-xl font-bold">{n}</p>
-              <p className="text-[11.5px] text-zinc-500">{name}</p>
+              <p className="font-typewriter text-[11px] text-zinc-500">{name}</p>
             </div>
           ))}
         </div>
@@ -334,11 +392,10 @@ function ConnectModal({ open, onClose }) {
         Connected clients can send captures from your sessions straight to the Librarian’s in-tray. You can revoke a connection at any time.
       </p>
 
-      {/* Existing connections */}
       <div className="mb-5 space-y-2">
         {connections.map((c) => (
           <div key={c.id} className="flex items-center gap-3 rounded-xl bg-neutral-50 p-3.5 ring-1 ring-neutral-200/60 ring-inset">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-surface text-brand-600 shadow-soft"><Plug size={16} /></span>
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-ink-950 text-brand-500"><Plug size={16} /></span>
             <span className="min-w-0 flex-1">
               <span className="block text-[13.5px] font-bold text-neutral-900">{c.name}</span>
               <span className="block text-[11.5px] text-neutral-400">Connected {timeAgo(c.connectedAt)} · last capture {timeAgo(c.lastCapture)}</span>
@@ -355,16 +412,15 @@ function ConnectModal({ open, onClose }) {
         {connections.length === 0 && <p className="py-2 text-center text-[12.5px] text-neutral-400">No connected clients.</p>}
       </div>
 
-      {/* New connection */}
       {secret ? (
         <div className="animate-scale-in rounded-2xl bg-ink-950 p-5 text-white">
-          <p className="mb-1 flex items-center gap-1.5 text-[13px] font-bold"><KeyRound size={14} className="text-brand-300" /> Your one-time secret</p>
+          <p className="mb-1 flex items-center gap-1.5 text-[13px] font-bold"><KeyRound size={14} className="text-brand-400" /> Your one-time secret</p>
           <p className="mb-3 text-[12px] text-zinc-400">Copy it now — for your security it won’t be shown again.</p>
           <div className="flex items-center gap-2">
-            <code className="flex-1 truncate rounded-lg bg-white/10 px-3.5 py-2.5 font-mono text-[13px] text-brand-300">
+            <code className="font-typewriter flex-1 truncate rounded-lg bg-white/10 px-3.5 py-2.5 text-[13px] text-brand-300">
               orvx_cap_9f2KwQx7Lm4TzR8pVn3E
             </code>
-            <Button size="sm" variant="secondary" onClick={async () => { await copyText('orvx_cap_9f2KwQx7Lm4TzR8pVn3E'); toast('Secret copied 🔑') }}>
+            <Button size="sm" onClick={async () => { await copyText('orvx_cap_9f2KwQx7Lm4TzR8pVn3E'); toast('Secret copied 🔑') }}>
               <Copy size={14} /> Copy
             </Button>
           </div>

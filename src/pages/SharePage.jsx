@@ -1,7 +1,8 @@
 import { Link, useParams } from 'react-router-dom'
-import { ArrowRight, GitFork, Sparkles } from 'lucide-react'
+import { ArrowRight, GitFork } from 'lucide-react'
 import { skillById, userById } from '../data/mock'
 import { Avatar, Badge, Button } from '../components/ui'
+import Logo from '../components/Logo'
 import { BlockList, SignalRow } from '../components/skills'
 import NotFound from './NotFound'
 
@@ -16,11 +17,8 @@ export default function SharePage() {
     <div className="min-h-screen bg-canvas">
       <header className="glass sticky top-0 z-30 border-b border-neutral-200/60">
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-5">
-          <Link to="/" className="flex items-center gap-2.5">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-brand-600 to-brand-400">
-              <Sparkles size={15} className="text-white" />
-            </span>
-            <span className="font-display text-[15px] font-bold text-neutral-900">Orvex</span>
+          <Link to="/" className="flex items-center">
+            <Logo className="text-2xl" />
           </Link>
           <div className="flex items-center gap-2.5">
             <Link to="/signin" className="text-[13px] font-semibold text-neutral-500 hover:text-neutral-900">Sign in</Link>

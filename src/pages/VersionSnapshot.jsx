@@ -67,7 +67,7 @@ function SnapshotInner({ source, marketSkill, versionEntry, isOwner }) {
           <span className="font-bold text-neutral-800">Changelog: </span>{versionEntry.notes}
         </p>
         {deprecated && reason && (
-          <p className="mt-3 rounded-xl bg-amber-50 px-4 py-3 text-[13px] text-amber-800 ring-1 ring-amber-200/70 ring-inset">
+          <p className="mt-3 rounded-xl bg-brand-50 px-4 py-3 text-[13px] text-brand-800 ring-1 ring-brand-200/70 ring-inset">
             <span className="font-bold">Marked outdated:</span> {reason}
           </p>
         )}

@@ -1,16 +1,22 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
-  ArchiveX, Bookmark, Calendar, Code2, Eye, GitBranch, GitFork,
-  MessageSquare, PenLine, Play, Smile, Star, UserPlus, Check, Download,
+  ArchiveX, Bookmark, Code2, Eye, GitBranch, GitFork, MessageSquare,
+  PenLine, Play, Smile, Star, UserPlus, Check, Download, TrendingUp,
+  Network, CalendarClock,
 } from 'lucide-react'
-import { buildPromptText, commentsBySkill, reviewsBySkill, skillById, userById } from '../data/mock'
+import {
+  buildPromptText, commentsBySkill, forksOf, myForksOf, ratingDistFor,
+  reviewsBySkill, seriesFor, skillById, starCurveFor, userById,
+} from '../data/mock'
 import { compact, formatDate, timeAgo, cn } from '../lib/utils'
 import {
-  Avatar, Badge, Button, Card, Divider, EmptyState, Modal, SectionHeading,
+  Avatar, Badge, Button, Card, EmptyState, Modal, SectionHeading,
   Skeleton, StarRating, StateGate, Tabs, Textarea,
 } from '../components/ui'
 import { BlockList } from '../components/skills'
+import { CategoryCover, ForkTree, RatingBars, TrendChart, VersionTimeline, categoryArt } from '../components/viz'
+import { WeekBars } from '../components/viz'
 import { useToast } from '../context/AppContext'
 import NotFound from './NotFound'
 
@@ -21,7 +27,7 @@ export default function SkillDetail() {
   const { id } = useParams()
   const skill = skillById(id)
   if (!skill) return <NotFound />
-  return <SkillDetailInner skill={skill} />
+  return <SkillDetailInner key={skill.id} skill={skill} />
 }
 
 function SkillDetailInner({ skill }) {
@@ -32,11 +38,14 @@ function SkillDetailInner({ skill }) {
   const setTab = (t) => setParams(t === 'overview' ? {} : { tab: t })
 
   const creator = userById(skill.creatorId)
+  const art = categoryArt(skill.category)
   const [following, setFollowing] = useState(false)
   const [starred, setStarred] = useState(skill.starredByMe)
   const [saved, setSaved] = useState(skill.savedByMe)
   const [showSource, setShowSource] = useState(false)
   const [suggestOpen, setSuggestOpen] = useState(false)
+
+  const starCount = skill.stars + (starred ? (skill.starredByMe ? 0 : 1) : (skill.starredByMe ? -1 : 0))
 
   return (
     <StateGate
@@ -44,52 +53,84 @@ function SkillDetailInner({ skill }) {
       empty={<EmptyState title="Skill unavailable" body="This skill may have been unpublished by its creator." action={<Link to="/app/marketplace"><Button variant="secondary">Back to marketplace</Button></Link>} />}
     >
       <div className="mx-auto max-w-4xl space-y-7">
-        {/* ─── Header (shared by both tabs) ─── */}
-        <div className="animate-fade-up">
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <Badge variant="brand">{skill.category}</Badge>
-            <Badge variant="outline">v{skill.version}</Badge>
-            {skill.deprecated && <Badge variant="warning"><ArchiveX size={11} /> Outdated — {skill.deprecatedReason}</Badge>}
-          </div>
-          <h1 className="font-display mb-2 text-3xl font-bold tracking-tight text-neutral-900">{skill.title}</h1>
-          <p className="mb-4 max-w-2xl text-[15px] leading-relaxed text-neutral-500">{skill.tagline}</p>
+        {/* ─── Hero (shared by both tabs) ─── */}
+        <div className="animate-fade-up relative overflow-hidden rounded-3xl bg-ink-950 p-6 text-white ring-1 ring-white/10 ring-inset sm:p-8">
+          <div className="absolute inset-0 opacity-40" style={{ background: `radial-gradient(600px 240px at 85% -20%, ${art.g[0]}66, transparent), radial-gradient(500px 220px at 0% 110%, ${art.g[1]}44, transparent)` }} />
+          <div className="bg-hero-grid absolute inset-0 opacity-60" />
 
-          {skill.basedOn && (
-            <p className="mb-4 flex items-center gap-1.5 text-[13px] text-neutral-400">
-              <GitBranch size={13} />
-              Based on{' '}
-              <Link to={`/app/skills/${skill.basedOn.id}`} className="font-semibold text-brand-600 hover:underline">
-                {skill.basedOn.title}
+          <div className="relative">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <Link to={`/app/marketplace?category=${encodeURIComponent(skill.category)}`} className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[11.5px] font-bold text-white ring-1 ring-white/20 ring-inset transition-colors hover:bg-white/10" style={{ background: `linear-gradient(120deg, ${art.g[0]}cc, ${art.g[1]}cc)` }}>
+                <art.icon size={12} /> {skill.category}
               </Link>
-            </p>
-          )}
+              <Badge variant="outline" className="!text-zinc-300 !ring-white/20">v{skill.version}</Badge>
+              {skill.deprecated && <Badge variant="warning"><ArchiveX size={11} /> Outdated — {skill.deprecatedReason}</Badge>}
+            </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <Link to={`/app/authors/${creator.handle}`} className="group flex items-center gap-2.5">
-              <Avatar name={creator.name} size={38} />
-              <span>
-                <span className="block text-[13.5px] font-bold text-neutral-900 group-hover:text-brand-700">{creator.name}</span>
-                <span className="block text-[12px] text-neutral-400">{creator.role}</span>
-              </span>
+            <h1 className="font-display mb-2 text-3xl font-bold tracking-tight sm:text-4xl">{skill.title}</h1>
+            <p className="mb-4 max-w-2xl text-[15px] leading-relaxed text-zinc-400">{skill.tagline}</p>
+
+            {skill.basedOn && (
+              <p className="mb-5 flex items-center gap-1.5 text-[13px] text-zinc-500">
+                <GitBranch size={13} />
+                Based on{' '}
+                <Link to={`/app/skills/${skill.basedOn.id}`} className="font-semibold text-brand-300 hover:text-white">
+                  {skill.basedOn.title}
+                </Link>
+              </p>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <Link to={`/app/authors/${creator.handle}`} className="group flex items-center gap-2.5">
+                <Avatar name={creator.name} size={40} ring />
+                <span>
+                  <span className="block text-[13.5px] font-bold text-white group-hover:text-brand-300">{creator.name}</span>
+                  <span className="block text-[12px] text-zinc-500">{creator.role}</span>
+                </span>
+                <button
+                  onClick={(e) => { e.preventDefault(); setFollowing((f) => !f); toast(following ? `Unfollowed ${creator.name}` : `Following ${creator.name}`) }}
+                  className={cn(
+                    'ml-2 flex h-7 cursor-pointer items-center gap-1 rounded-full px-3 text-[12px] font-bold transition-all',
+                    following ? 'bg-white/10 text-zinc-300' : 'bg-brand-600 text-white shadow-glow-sm hover:brightness-110',
+                  )}
+                >
+                  {following ? <><Check size={12} /> Following</> : <><UserPlus size={12} /> Follow</>}
+                </button>
+              </Link>
+
+              {/* The only two actions on a public view */}
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => navigate(`/app/skills/${skill.id}/use`)}
+                  className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-white/10 px-4.5 text-sm font-semibold text-white ring-1 ring-white/15 ring-inset transition-all hover:bg-white/15"
+                >
+                  <Play size={15} /> Use it
+                </button>
+                <Button onClick={() => { toast('Copied to your drafts — make it yours ✨'); navigate('/app/drafts?tab=forked') }}>
+                  <GitFork size={15} /> Make it yours
+                </Button>
+              </div>
+            </div>
+
+            {/* Stat chips — every number real */}
+            <div className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               <button
-                onClick={(e) => { e.preventDefault(); setFollowing((f) => !f); toast(following ? `Unfollowed ${creator.name}` : `Following ${creator.name}`) }}
+                onClick={() => { setStarred((s) => !s); toast(starred ? 'Star removed' : 'Starred ⭐') }}
+                aria-pressed={starred}
                 className={cn(
-                  'ml-2 flex h-7 cursor-pointer items-center gap-1 rounded-full px-3 text-[12px] font-bold transition-all',
-                  following ? 'bg-neutral-100 text-neutral-500' : 'bg-brand-50 text-brand-700 hover:bg-brand-100',
+                  'cursor-pointer rounded-2xl p-3.5 text-left ring-1 ring-inset transition-all',
+                  starred ? 'bg-brand-600/30 ring-brand-400/50' : 'bg-white/6 ring-white/10 hover:bg-white/10',
                 )}
               >
-                {following ? <><Check size={12} /> Following</> : <><UserPlus size={12} /> Follow</>}
+                <p className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+                  <Star size={11} className={starred ? 'fill-brand-300 text-brand-300' : ''} /> Stars
+                </p>
+                <p className="font-display mt-1 text-xl font-bold">{compact(starCount)}</p>
+                <p className="text-[10.5px] font-semibold text-brand-300">{starred ? 'Starred — tap to undo' : 'Tap to star'}</p>
               </button>
-            </Link>
-
-            {/* The only two actions on a public view */}
-            <div className="flex items-center gap-2.5">
-              <Button variant="outline" onClick={() => navigate(`/app/skills/${skill.id}/use`)}>
-                <Play size={15} /> Use it
-              </Button>
-              <Button onClick={() => { toast('Copied to your drafts — make it yours ✨'); navigate('/app/drafts?tab=forked') }}>
-                <GitFork size={15} /> Make it yours
-              </Button>
+              <HeroStat icon={GitFork} label="Forks" value={compact(skill.forksTotal)} sub={`${skill.forksWeek} this week`} subClass="text-brand-400" />
+              <HeroStat icon={Bookmark} label="Saves" value={compact(skill.saves)} sub={saved ? 'In your library' : ' '} subClass="text-brand-300" />
+              <HeroStat icon={CalendarClock} label="Last release" value={timeAgo(skill.versions[0].date)} sub={formatDate(skill.versions[0].date)} subClass="text-zinc-500" />
             </div>
           </div>
         </div>
@@ -103,30 +144,39 @@ function SkillDetailInner({ skill }) {
 
         {tab === 'overview' ? (
           <div className="space-y-10">
-            {/* Package summary */}
-            <Card className="animate-fade-up grid grid-cols-2 gap-y-5 p-6 sm:grid-cols-4">
-              <SummaryStat label="Current version" value={`v${skill.version}`} />
-              <SummaryStat
-                label="Stars"
-                value={compact(starred ? skill.stars + (skill.starredByMe ? 0 : 1) : skill.stars - (skill.starredByMe ? 1 : 0))}
-                extra={
-                  <button
-                    onClick={() => { setStarred((s) => !s); toast(starred ? 'Star removed' : 'Starred ⭐') }}
-                    aria-pressed={starred}
-                    className={cn(
-                      'mt-1.5 flex h-7 cursor-pointer items-center gap-1.5 rounded-full px-3 text-[12px] font-bold transition-all',
-                      starred ? 'bg-brand-600 text-white shadow-glow-sm' : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200',
-                    )}
-                  >
-                    <Star size={12} className={starred ? 'fill-white' : ''} /> {starred ? 'Starred' : 'Star'}
-                  </button>
-                }
-              />
-              <SummaryStat label="Forks" value={compact(skill.forksTotal)} sub={`${skill.forksWeek} this week`} />
-              <SummaryStat label="Last published" value={timeAgo(skill.versions[0].date)} sub={formatDate(skill.versions[0].date)} />
-            </Card>
+            {/* ─── Signals: live charts ─── */}
+            <section>
+              <SectionHeading title="Signals" sub="Real activity, straight from the community" />
+              <div className="grid gap-4 lg:grid-cols-3">
+                <Card className="animate-fade-up p-5">
+                  <p className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-neutral-400 uppercase">
+                    <TrendingUp size={12} className="text-brand-500" /> Star growth
+                  </p>
+                  <p className="font-display mt-1 mb-2 text-2xl font-bold text-neutral-900">{compact(starCount)}</p>
+                  <TrendChart data={starCurveFor(skill)} height={92} label={`${skill.title} stars over the last 12 weeks`} />
+                </Card>
+                <Card className="animate-fade-up p-5" style={{ animationDelay: '70ms' }}>
+                  <p className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-neutral-400 uppercase">
+                    <GitFork size={12} className="text-brand-500" /> Forks per week
+                  </p>
+                  <p className="font-display mt-1 mb-2 text-2xl font-bold text-neutral-900">{skill.forksWeek}<span className="ml-1 text-[12px] font-semibold text-neutral-400">this week</span></p>
+                  <WeekBars data={seriesFor(`forks:${skill.id}`)} height={92} label={`${skill.title} forks per week`} format={(v) => `${Math.round(v)} forks`} />
+                </Card>
+                <Card className="animate-fade-up p-5" style={{ animationDelay: '140ms' }}>
+                  <p className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-neutral-400 uppercase">
+                    <Star size={12} className="text-brand-500" /> Ratings
+                  </p>
+                  <p className="font-display mt-1 mb-2 flex items-baseline gap-2 text-2xl font-bold text-neutral-900">
+                    {skill.rating}
+                    <StarRating value={skill.rating} size={12} />
+                    <span className="text-[12px] font-semibold text-neutral-400">{skill.reviewCount} ratings</span>
+                  </p>
+                  <RatingBars dist={ratingDistFor(skill)} />
+                </Card>
+              </div>
+            </section>
 
-            {/* The pieces */}
+            {/* ─── The pieces ─── */}
             <section>
               <SectionHeading
                 title="What’s inside"
@@ -140,8 +190,11 @@ function SkillDetailInner({ skill }) {
               <BlockList blocks={skill.blocks} />
             </section>
 
+            {/* ─── Lineage tree ─── */}
+            <LineageSection skill={skill} />
+
             {/* Suggest an edit */}
-            <Card className="flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-brand-50/80 to-white p-5">
+            <Card className="flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-brand-50/80 to-surface p-5">
               <div className="flex items-center gap-3.5">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-surface text-brand-600 shadow-soft"><PenLine size={18} /></span>
                 <div>
@@ -176,56 +229,83 @@ function SkillDetailInner({ skill }) {
   )
 }
 
-function SummaryStat({ label, value, sub, extra }) {
+function HeroStat({ icon: Icon, label, value, sub, subClass }) {
   return (
-    <div>
-      <p className="mb-1 text-[11px] font-bold tracking-wider text-neutral-400 uppercase">{label}</p>
-      <p className="font-display text-xl font-bold text-neutral-900">{value}</p>
-      {sub && <p className="text-[12px] text-neutral-400">{sub}</p>}
-      {extra}
+    <div className="rounded-2xl bg-white/6 p-3.5 ring-1 ring-white/10 ring-inset">
+      <p className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider text-zinc-400 uppercase">
+        <Icon size={11} /> {label}
+      </p>
+      <p className="font-display mt-1 text-xl font-bold text-white">{value}</p>
+      <p className={cn('text-[10.5px] font-semibold', subClass)}>{sub}</p>
     </div>
   )
 }
 
-// ─── Versions tab ────────────────────────────────────────────────────────────
+// ─── Lineage (family tree) ───────────────────────────────────────────────────
+function LineageSection({ skill }) {
+  const parent = skill.basedOn ? skillById(skill.basedOn.id) : null
+  const forkChildren = forksOf(skill.id)
+  const draftChildren = myForksOf(skill.id)
+  if (!parent && forkChildren.length === 0 && draftChildren.length === 0) return null
+
+  const node = (s, extra = {}) => ({
+    id: s.id,
+    title: s.title,
+    category: s.category,
+    meta: `${userById(s.creatorId).name} · v${s.version} · ${compact(s.stars)} stars`,
+    stat: s.forksTotal,
+    to: `/app/skills/${s.id}`,
+    ...extra,
+  })
+
+  const children = [
+    ...forkChildren.map((s) => node(s, { badge: 'Fork', badgeStyle: 'bg-neutral-100 text-neutral-500' })),
+    ...draftChildren.map((d) => ({
+      id: d.id, title: d.title, category: d.category,
+      meta: `Your private draft · ${d.edits} edits`,
+      to: `/app/drafts/${d.id}`,
+      badge: 'Your copy', badgeStyle: 'bg-brand-600 text-white',
+    })),
+  ]
+
+  return (
+    <section>
+      <SectionHeading
+        title="Lineage"
+        sub="Where this skill came from, and where the community took it"
+        right={<span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-50 text-brand-600"><Network size={17} /></span>}
+      />
+      <Card className="animate-fade-up p-5">
+        <ForkTree
+          parent={parent ? node(parent, { badge: 'Original', badgeStyle: 'bg-brand-100 text-brand-700' }) : null}
+          current={{ id: skill.id, title: skill.title, category: skill.category, meta: `This skill · v${skill.version}`, stat: skill.forksTotal }}
+          children={children}
+        />
+      </Card>
+    </section>
+  )
+}
+
+// ─── Versions tab: timeline ──────────────────────────────────────────────────
 function VersionsTab({ skill }) {
   const navigate = useNavigate()
   const toast = useToast()
+  const items = skill.versions.map((v) => ({ ...v, byName: userById(v.by).name }))
   return (
-    <div className="space-y-3">
-      {skill.versions.map((v, i) => {
-        const publisher = userById(v.by)
-        return (
-          <Card key={v.v} className="animate-fade-up p-5" style={{ animationDelay: `${i * 50}ms` }}>
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="min-w-0">
-                <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                  <span className="font-display text-[15px] font-bold text-neutral-900">v{v.v}</span>
-                  {i === 0 && !v.deprecated && <Badge variant="success">Latest</Badge>}
-                  {v.deprecated && <Badge variant="warning"><ArchiveX size={11} /> Outdated</Badge>}
-                </div>
-                <p className="mb-2 max-w-xl text-[13.5px] leading-relaxed text-neutral-600">{v.notes}</p>
-                {v.deprecated && (
-                  <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-[12.5px] text-amber-700">
-                    Marked outdated: {v.deprecated.reason}
-                  </p>
-                )}
-                <p className="flex items-center gap-1.5 text-[12px] text-neutral-400">
-                  <Avatar name={publisher.name} size={16} /> {publisher.name} · <Calendar size={11} /> {formatDate(v.date)}
-                </p>
-              </div>
-              <div className="flex shrink-0 gap-2">
-                <Button variant="outline" size="sm" onClick={() => navigate(`/app/published/${skill.id}/v/${v.v}`)}>
-                  <Eye size={14} /> View
-                </Button>
-                <Button variant="secondary" size="sm" onClick={() => { toast(`Copy created from v${v.v}`); navigate('/app/drafts?tab=forked') }}>
-                  <Download size={14} /> Get this version
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )
-      })}
+    <div className="animate-fade-up">
+      <VersionTimeline
+        items={items}
+        renderActions={(item) => (
+          <>
+            <Button variant="outline" size="sm" onClick={() => navigate(`/app/published/${skill.id}/v/${item.v}`)}>
+              <Eye size={14} /> View
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => { toast(`Copy created from v${item.v}`); navigate('/app/drafts?tab=forked') }}>
+              <Download size={14} /> Get this version
+            </Button>
+          </>
+        )}
+      />
     </div>
   )
 }
@@ -368,7 +448,7 @@ function CommentsSection({ skill }) {
             )}
           </div>
           <div className="flex items-center gap-3">
-            <span className={cn('text-[11.5px] font-semibold tabular-nums', text.length > MAX * 0.9 ? 'text-amber-600' : 'text-neutral-300')}>
+            <span className={cn('text-[11.5px] font-semibold tabular-nums', text.length > MAX * 0.9 ? 'text-brand-600' : 'text-neutral-300')}>
               {text.length}/{MAX}
             </span>
             <Button size="sm" disabled={!text.trim()} onClick={post}>Post</Button>
@@ -461,14 +541,14 @@ function SuggestEditModal({ open, onClose, skill }) {
       <div className="mb-4 grid gap-3 sm:grid-cols-2">
         <div>
           <p className="mb-1.5 text-[11px] font-bold tracking-wider text-neutral-400 uppercase">Before</p>
-          <div className="h-40 overflow-y-auto rounded-xl bg-rose-50/60 p-3.5 text-[13px] leading-relaxed text-neutral-600 ring-1 ring-rose-100 ring-inset">
+          <div className="h-40 overflow-y-auto rounded-xl bg-neutral-100/70 p-3.5 text-[13px] leading-relaxed text-neutral-600 ring-1 ring-neutral-200 ring-inset">
             {block?.content}
           </div>
         </div>
         <div>
           <p className="mb-1.5 text-[11px] font-bold tracking-wider text-neutral-400 uppercase">Your version</p>
           <Textarea
-            className="h-40 bg-emerald-50/50 ring-emerald-100"
+            className="h-40 bg-brand-50/50 ring-brand-100"
             placeholder="Write the piece the way you think it should read…"
             value={after}
             onChange={(e) => setAfter(e.target.value)}
@@ -489,18 +569,12 @@ function SuggestEditModal({ open, onClose, skill }) {
 function DetailSkeleton() {
   return (
     <div className="mx-auto max-w-4xl space-y-7">
-      <div>
-        <div className="mb-3 flex gap-2"><Skeleton className="h-5 w-24 rounded-full" /><Skeleton className="h-5 w-14 rounded-full" /></div>
-        <Skeleton className="mb-2 h-9 w-96 max-w-full" />
-        <Skeleton className="mb-5 h-4 w-72 max-w-full" />
-        <div className="flex justify-between">
-          <div className="flex items-center gap-2.5"><Skeleton className="h-9 w-9 rounded-full" /><Skeleton className="h-8 w-36" /></div>
-          <div className="flex gap-2.5"><Skeleton className="h-10 w-24 rounded-xl" /><Skeleton className="h-10 w-36 rounded-xl" /></div>
-        </div>
-      </div>
+      <Skeleton className="h-72 rounded-3xl" />
       <Skeleton className="h-10 w-56 rounded-xl" />
-      <Skeleton className="h-28 rounded-2xl" />
-      {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
+      <div className="grid gap-4 lg:grid-cols-3">
+        {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-44 rounded-2xl" />)}
+      </div>
+      {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
     </div>
   )
 }

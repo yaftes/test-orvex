@@ -106,8 +106,8 @@ export default function Admin() {
                     <Badge variant={u.role === 'Admin' ? 'dark' : 'neutral'}>{u.role}</Badge>
                   </td>
                   <td className="px-4 py-3.5">
-                    <span className={cn('flex w-fit items-center gap-1.5 text-[12px] font-bold', u.status === 'active' ? 'text-emerald-600' : 'text-rose-500')}>
-                      <span className={cn('h-1.5 w-1.5 rounded-full', u.status === 'active' ? 'bg-emerald-500' : 'bg-rose-400')} />
+                    <span className={cn('flex w-fit items-center gap-1.5 text-[12px] font-bold', u.status === 'active' ? 'text-brand-600' : 'text-neutral-500')}>
+                      <span className={cn('h-1.5 w-1.5 rounded-full', u.status === 'active' ? 'bg-brand-500' : 'bg-neutral-400')} />
                       {u.status}
                     </span>
                   </td>

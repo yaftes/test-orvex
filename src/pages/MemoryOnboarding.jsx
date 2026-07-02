@@ -107,7 +107,7 @@ export default function MemoryOnboarding() {
             {BUILT_SECTIONS.slice(0, builtCount).map((s, i) => (
               <Card key={s.id} className="animate-fade-up p-5" style={{ animationDelay: '60ms' }}>
                 <div className="mb-2 flex items-center gap-2">
-                  <span className="grid h-6 w-6 place-items-center rounded-full bg-emerald-100 text-emerald-600">
+                  <span className="grid h-6 w-6 place-items-center rounded-full bg-brand-100 text-brand-600">
                     <Check size={13} strokeWidth={3} />
                   </span>
                   <p className="text-[13.5px] font-bold text-neutral-900">{s.title}</p>

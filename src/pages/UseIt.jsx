@@ -9,10 +9,10 @@ import NotFound from './NotFound'
 
 // Deep links into the major assistants — intentionally assistant-agnostic order.
 const ASSISTANTS = [
-  { name: 'Claude', href: (p) => `https://claude.ai/new?q=${encodeURIComponent(p)}`, mark: 'C', tint: 'bg-[#D97757]/10 text-[#C15F3C]' },
-  { name: 'ChatGPT', href: (p) => `https://chatgpt.com/?q=${encodeURIComponent(p)}`, mark: 'G', tint: 'bg-emerald-500/10 text-emerald-600' },
-  { name: 'Gemini', href: (p) => `https://gemini.google.com/app?q=${encodeURIComponent(p)}`, mark: 'G', tint: 'bg-sky-500/10 text-sky-600' },
-  { name: 'Grok', href: (p) => `https://grok.com/?q=${encodeURIComponent(p)}`, mark: 'X', tint: 'bg-neutral-500/10 text-neutral-700' },
+  { name: 'Claude', href: (p) => `https://claude.ai/new?q=${encodeURIComponent(p)}`, mark: 'C', tint: 'bg-neutral-100 text-neutral-700' },
+  { name: 'ChatGPT', href: (p) => `https://chatgpt.com/?q=${encodeURIComponent(p)}`, mark: 'G', tint: 'bg-neutral-100 text-neutral-700' },
+  { name: 'Gemini', href: (p) => `https://gemini.google.com/app?q=${encodeURIComponent(p)}`, mark: 'G', tint: 'bg-neutral-100 text-neutral-700' },
+  { name: 'Grok', href: (p) => `https://grok.com/?q=${encodeURIComponent(p)}`, mark: 'X', tint: 'bg-neutral-100 text-neutral-700' },
 ]
 
 export default function UseIt() {

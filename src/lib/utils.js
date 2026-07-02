@@ -31,9 +31,9 @@ export function compact(n) {
 
 /** Deterministic gradient pair for avatars, keyed by name. */
 const AVATAR_GRADIENTS = [
-  ['#8000FF', '#B06EFF'], ['#5A06AE', '#9636FF'], ['#2D005F', '#8000FF'],
-  ['#6D00D9', '#CDA1FF'], ['#4A0B8C', '#B06EFF'], ['#9636FF', '#E3CCFF'],
-  ['#1E1830', '#8000FF'], ['#8000FF', '#E3CCFF'],
+  ['#FF5A00', '#FF9A5C'], ['#C64000', '#FF5A00'], ['#0B0B0C', '#FF5A00'],
+  ['#7A2800', '#FF7D33'], ['#1A1A1D', '#71717A'], ['#FF5A00', '#FFD9BF'],
+  ['#3F3F46', '#0B0B0C'], ['#F04E00', '#FFC7A6'],
 ]
 export function avatarGradient(name = '?') {
   let h = 0

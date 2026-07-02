@@ -41,8 +41,8 @@ export function useSimulatedLoad(ms = 550) {
 }
 
 const TOAST_ICONS = {
-  success: <CheckCircle2 size={17} className="text-emerald-400" />,
-  error: <XCircle size={17} className="text-rose-400" />,
+  success: <CheckCircle2 size={17} className="text-brand-400" />,
+  error: <XCircle size={17} className="text-brand-400" />,
   info: <Info size={17} className="text-brand-300" />,
 }
 

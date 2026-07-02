@@ -51,7 +51,7 @@ export default function SettingsPage() {
             icon={<GoogleMark />}
             title="Google"
             sub="Used for sign-in"
-            right={<span className="text-[12px] font-bold text-emerald-600">Connected</span>}
+            right={<span className="text-[12px] font-bold text-brand-600">Connected</span>}
           />
           {librarianConnections.map((c) => (
             <Row
@@ -121,11 +121,11 @@ export default function SettingsPage() {
       {/* Danger zone — clearly separated */}
       <section>
         <SectionHeading title="Danger zone" />
-        <Card className="space-y-4 !ring-rose-200 p-6">
+        <Card className="space-y-4 !ring-neutral-900/50 p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="flex items-center gap-1.5 text-[14px] font-bold text-neutral-900">
-                <AlertTriangle size={14} className="text-rose-500" /> Delete account
+                <AlertTriangle size={14} className="text-brand-600" /> Delete account
               </p>
               <p className="max-w-sm text-[12.5px] leading-relaxed text-neutral-400">
                 Permanently deletes your account, drafts, Memory and Wiki. Published skills are unpublished. This cannot be undone.

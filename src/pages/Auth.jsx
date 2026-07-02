@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Check, Sparkles, Users, User } from 'lucide-react'
+import { Check, Users, User } from 'lucide-react'
 import { organizations } from '../data/mock'
 import { Button, Field, Input } from '../components/ui'
+import Logo from '../components/Logo'
 import { cn } from '../lib/utils'
 
 function AuthFrame({ title, sub, children, footer }) {
@@ -13,11 +14,8 @@ function AuthFrame({ title, sub, children, footer }) {
       <div className="animate-float-slow absolute right-1/4 bottom-0 h-72 w-72 rounded-full bg-brand-400/15 blur-[90px]" />
 
       <div className="relative w-full max-w-md">
-        <Link to="/" className="mb-8 flex items-center justify-center gap-2.5">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-brand-600 to-brand-400 shadow-glow-sm">
-            <Sparkles size={19} className="text-white" />
-          </span>
-          <span className="font-display text-lg font-bold text-white">Orvex</span>
+        <Link to="/" className="mb-8 flex justify-center">
+          <Logo variant="dark" className="text-3xl" />
         </Link>
 
         <div className="animate-scale-in rounded-3xl bg-surface p-8 shadow-lift">

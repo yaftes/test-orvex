@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Archive, ArchiveX, ChevronDown, Plus, Rocket } from 'lucide-react'
-import { myPublished } from '../data/mock'
-import { cn, compact, formatDate } from '../lib/utils'
+import { useNavigate } from 'react-router-dom'
+import { Archive, ChevronDown, Eye, Plus, Rocket } from 'lucide-react'
+import { myPublished, seriesFor } from '../data/mock'
+import { cn, compact } from '../lib/utils'
 import { Badge, Button, Card, EmptyState, Skeleton, StateGate } from '../components/ui'
 import { SignalRow } from '../components/skills'
+import { Sparkline, VersionTimeline } from '../components/viz'
 
 export default function Published() {
   const navigate = useNavigate()
@@ -55,29 +56,23 @@ export default function Published() {
                       </span>
                       <span className="block truncate text-[12.5px] text-neutral-400">{skill.tagline}</span>
                     </span>
+                    <Sparkline data={seriesFor(skill.id, 10)} width={72} height={26} className="hidden shrink-0 md:block" />
                     <SignalRow skill={{ ...skill, starredByMe: false, savedByMe: false }} className="hidden sm:flex" />
                     <ChevronDown size={17} className={cn('shrink-0 text-neutral-400 transition-transform duration-200', open && 'rotate-180')} />
                   </button>
 
                   {open && (
-                    <div className="animate-fade-in border-t border-neutral-100 bg-neutral-50/50 px-5 py-4">
-                      <p className="mb-3 text-[11px] font-bold tracking-widest text-neutral-400 uppercase">All versions</p>
-                      <div className="space-y-2">
-                        {skill.versions.map((v, vi) => (
-                          <Link
-                            key={v.v}
-                            to={`/app/published/${skill.id}/v/${v.v}`}
-                            className="flex items-center gap-3.5 rounded-xl bg-surface p-3.5 ring-1 ring-neutral-200/70 ring-inset transition-all hover:ring-brand-300 hover:shadow-soft"
-                          >
-                            <span className="font-display w-14 shrink-0 text-[13.5px] font-bold text-neutral-900">v{v.v}</span>
-                            <span className="min-w-0 flex-1 truncate text-[13px] text-neutral-500">{v.notes}</span>
-                            <span className="hidden shrink-0 text-[12px] text-neutral-400 sm:block">{formatDate(v.date)}</span>
-                            {vi === 0 && !v.deprecated && <Badge variant="success">Latest</Badge>}
-                            {v.deprecated && <Badge variant="warning"><ArchiveX size={11} /> Outdated</Badge>}
-                          </Link>
-                        ))}
-                      </div>
-                      <p className="mt-3 text-[11.5px] text-neutral-400">
+                    <div className="animate-fade-in border-t border-neutral-100 bg-neutral-50/50 px-5 py-5">
+                      <p className="mb-4 text-[11px] font-bold tracking-widest text-neutral-400 uppercase">Release history</p>
+                      <VersionTimeline
+                        items={skill.versions}
+                        renderActions={(item) => (
+                          <Button variant="outline" size="sm" onClick={() => navigate(`/app/published/${skill.id}/v/${item.v}`)}>
+                            <Eye size={14} /> View
+                          </Button>
+                        )}
+                      />
+                      <p className="mt-4 text-[11.5px] text-neutral-400">
                         {compact(skill.stars)} stars · {compact(skill.forksTotal)} forks · {compact(skill.saves)} saves — all real numbers.
                       </p>
                     </div>

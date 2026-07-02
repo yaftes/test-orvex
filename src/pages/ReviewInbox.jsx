@@ -85,7 +85,7 @@ export default function ReviewInbox() {
                             key={ch.id}
                             className={cn(
                               'rounded-2xl p-4 ring-1 ring-inset transition-all duration-200',
-                              decision === 'accept' && 'bg-emerald-50/50 ring-emerald-200',
+                              decision === 'accept' && 'bg-brand-50/50 ring-brand-200',
                               decision === 'decline' && 'bg-neutral-50 opacity-60 ring-neutral-200',
                               !decision && 'ring-neutral-200/70',
                             )}
@@ -98,7 +98,7 @@ export default function ReviewInbox() {
                                   aria-pressed={decision === 'accept'}
                                   className={cn(
                                     'flex h-7 cursor-pointer items-center gap-1 rounded-full px-3 text-[12px] font-bold transition-all',
-                                    decision === 'accept' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
+                                    decision === 'accept' ? 'bg-brand-600 text-white' : 'bg-brand-50 text-brand-700 hover:bg-brand-100',
                                   )}
                                 >
                                   <Check size={12} strokeWidth={3} /> Accept
@@ -116,12 +116,12 @@ export default function ReviewInbox() {
                               </div>
                             </div>
                             <div className="grid gap-2.5 sm:grid-cols-2">
-                              <div className="rounded-xl bg-rose-50/60 p-3.5 ring-1 ring-rose-100 ring-inset">
-                                <p className="mb-1 text-[10.5px] font-bold tracking-widest text-rose-400 uppercase">Before</p>
+                              <div className="rounded-xl bg-neutral-100/70 p-3.5 ring-1 ring-neutral-200 ring-inset">
+                                <p className="mb-1 text-[10.5px] font-bold tracking-widest text-neutral-400 uppercase">Before</p>
                                 <p className="text-[12.5px] leading-relaxed text-neutral-600">{ch.before}</p>
                               </div>
-                              <div className="rounded-xl bg-emerald-50/60 p-3.5 ring-1 ring-emerald-100 ring-inset">
-                                <p className="mb-1 text-[10.5px] font-bold tracking-widest text-emerald-500 uppercase">After</p>
+                              <div className="rounded-xl bg-brand-50/60 p-3.5 ring-1 ring-brand-100 ring-inset">
+                                <p className="mb-1 text-[10.5px] font-bold tracking-widest text-brand-500 uppercase">After</p>
                                 <p className="text-[12.5px] leading-relaxed text-neutral-700">{ch.after}</p>
                               </div>
                             </div>

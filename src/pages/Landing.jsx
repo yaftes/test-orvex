@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
 import {
-  ArrowRight, Blocks, Bot, Brain, Eye, Moon, PenLine, Sparkles, Store,
+  ArrowRight, Blocks, Bot, Brain, Eye, Moon, PenLine, Store,
   Sun, Users, Wand2, ChevronRight,
 } from 'lucide-react'
 import { skills } from '../data/mock'
 import { SkillCard } from '../components/skills'
 import { Button } from '../components/ui'
+import Logo from '../components/Logo'
 import { useTheme } from '../context/AppContext'
 
 const BENEFITS = [
@@ -28,16 +29,14 @@ const ASSISTANTS = ['ChatGPT', 'Claude', 'Gemini', 'Grok']
 export default function Landing() {
   const preview = skills.slice(0, 6)
   const { theme, toggleTheme } = useTheme()
+
   return (
     <div className="min-h-screen bg-surface">
       {/* ─── Header ─── */}
       <header className="glass-dark fixed inset-x-0 top-0 z-50 border-b border-white/8">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
-          <Link to="/" className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand-600 to-brand-400 shadow-glow-sm">
-              <Sparkles size={18} className="text-white" />
-            </span>
-            <span className="font-display text-[17px] font-bold text-white">Orvex</span>
+          <Link to="/" className="flex items-center">
+            <Logo variant="dark" className="text-2xl" />
           </Link>
           <nav className="hidden items-center gap-7 text-[13.5px] font-medium text-zinc-300 md:flex">
             <a href="#how" className="transition-colors hover:text-white">How it works</a>
@@ -67,13 +66,13 @@ export default function Landing() {
       <section className="relative overflow-hidden bg-ink-950 pt-36 pb-28">
         {/* atmosphere */}
         <div className="bg-hero-grid absolute inset-0" />
-        <div className="animate-float absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-brand-600/28 blur-[110px]" />
-        <div className="animate-float-slow absolute top-24 right-1/5 h-80 w-80 rounded-full bg-brand-400/18 blur-[100px]" />
-        <div className="absolute bottom-0 left-1/2 h-64 w-[42rem] -translate-x-1/2 rounded-full bg-brand-600/12 blur-[90px]" />
+        <div className="animate-float absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-brand-500/25 blur-[110px]" />
+        <div className="animate-float-slow absolute top-24 right-1/5 h-80 w-80 rounded-full bg-brand-400/15 blur-[100px]" />
+        <div className="absolute bottom-0 left-1/2 h-64 w-[42rem] -translate-x-1/2 rounded-full bg-brand-600/10 blur-[90px]" />
 
         <div className="relative mx-auto max-w-4xl px-5 text-center">
           <div className="animate-fade-up mb-7 inline-flex items-center gap-2 rounded-full bg-white/6 py-1.5 pr-4 pl-1.5 text-[13px] font-medium text-zinc-300 ring-1 ring-white/10">
-            <span className="rounded-full bg-brand-600 px-2.5 py-0.5 text-[11px] font-bold text-white">New</span>
+            <span className="rounded-full bg-brand-500 px-2.5 py-0.5 text-[11px] font-bold text-ink-950">New</span>
             The Librarian now files captures from any AI client
             <ChevronRight size={14} className="text-zinc-500" />
           </div>
@@ -119,10 +118,10 @@ export default function Landing() {
             From blank box to brilliant output in three steps
           </h2>
           <div className="grid gap-5 md:grid-cols-3">
-            {STEPS.map((s, i) => (
-              <div key={s.n} className="group relative rounded-3xl bg-neutral-50 p-8 ring-1 ring-neutral-200/60 ring-inset transition-all duration-300 hover:-translate-y-1 hover:bg-surface hover:shadow-lift hover:ring-brand-200">
-                <span className="font-display absolute top-7 right-7 text-4xl font-bold text-neutral-200/80 transition-colors group-hover:text-brand-100">{s.n}</span>
-                <div className="mb-5 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-brand-600 to-brand-400 text-white shadow-glow-sm">
+            {STEPS.map((s) => (
+              <div key={s.n} className="group relative rounded-3xl bg-neutral-50 p-8 ring-1 ring-neutral-200 ring-inset transition-all duration-300 hover:-translate-y-1 hover:bg-surface hover:ring-neutral-900">
+                <span className="font-display absolute top-7 right-7 text-4xl font-bold text-neutral-200 transition-colors group-hover:text-brand-200">{s.n}</span>
+                <div className="mb-5 grid h-12 w-12 place-items-center rounded-2xl bg-ink-950 text-brand-500">
                   <s.icon size={22} />
                 </div>
                 <h3 className="font-display mb-2 text-lg font-bold text-neutral-900">{s.title}</h3>
@@ -134,7 +133,7 @@ export default function Landing() {
       </section>
 
       {/* ─── Benefits ─── */}
-      <section id="benefits" className="bg-neutral-50 py-24">
+      <section id="benefits" className="bg-canvas py-24">
         <div className="mx-auto max-w-6xl px-5 sm:px-8">
           <p className="mb-3 text-center text-[12px] font-bold tracking-[0.2em] text-brand-600 uppercase">Why Orvex</p>
           <h2 className="font-display mx-auto mb-16 max-w-2xl text-center text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
@@ -142,7 +141,7 @@ export default function Landing() {
           </h2>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {BENEFITS.map((b) => (
-              <div key={b.title} className="rounded-3xl bg-surface p-7 ring-1 ring-neutral-200/70 ring-inset transition-all duration-300 hover:shadow-lift hover:ring-brand-200">
+              <div key={b.title} className="rounded-3xl bg-surface p-7 ring-1 ring-neutral-200 ring-inset transition-all duration-300 hover:-translate-y-0.5 hover:ring-neutral-900">
                 <div className="mb-4 grid h-11 w-11 place-items-center rounded-xl bg-brand-50 text-brand-600">
                   <b.icon size={21} />
                 </div>
@@ -177,7 +176,7 @@ export default function Landing() {
       {/* ─── Big CTA ─── */}
       <section className="relative overflow-hidden bg-ink-950 py-24">
         <div className="absolute inset-0 bg-dot-grid opacity-30" />
-        <div className="absolute top-1/2 left-1/2 h-80 w-[38rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-600/25 blur-[100px]" />
+        <div className="absolute top-1/2 left-1/2 h-80 w-[38rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-500/20 blur-[100px]" />
         <div className="relative mx-auto max-w-2xl px-5 text-center">
           <h2 className="font-display mb-5 text-3xl font-bold tracking-tight text-white sm:text-5xl">
             Your AI, finally <span className="text-gradient">fluent in you.</span>
@@ -192,15 +191,12 @@ export default function Landing() {
       </section>
 
       {/* ─── Footer ─── */}
-      <footer className="border-t border-neutral-100 bg-surface py-14">
+      <footer className="border-t border-neutral-200 bg-surface py-14">
         <div className="mx-auto max-w-7xl px-5 sm:px-8">
           <div className="flex flex-col items-start justify-between gap-10 md:flex-row">
             <div className="max-w-xs">
-              <div className="mb-3 flex items-center gap-2.5">
-                <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-brand-600 to-brand-400">
-                  <Sparkles size={15} className="text-white" />
-                </span>
-                <span className="font-display text-[15px] font-bold text-neutral-900">Orvex</span>
+              <div className="mb-3">
+                <Logo className="text-xl" />
               </div>
               <p className="text-[13px] leading-relaxed text-neutral-400">
                 The marketplace and workshop for reusable AI skills. Prompt once, benefit forever.
@@ -225,7 +221,7 @@ export default function Landing() {
               ))}
             </div>
           </div>
-          <div className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 pt-7 text-[12.5px] text-neutral-400">
+          <div className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-neutral-200 pt-7 text-[12.5px] text-neutral-400">
             <span>© 2026 Orvex, Inc. All rights reserved.</span>
             <span>Made for people who’d rather do the work than write the prompt.</span>
           </div>

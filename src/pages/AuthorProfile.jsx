@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Check, UserPlus } from 'lucide-react'
-import { allSkills, users } from '../data/mock'
+import { allSkills, seriesFor, users } from '../data/mock'
 import { cn, compact } from '../lib/utils'
 import { Avatar, Button, EmptyState, SectionHeading, Skeleton, StateGate } from '../components/ui'
 import { SkillCard, SkillGridSkeleton } from '../components/skills'
+import { Sparkline } from '../components/viz'
 import { useToast } from '../context/AppContext'
 import NotFound from './NotFound'
 
@@ -56,6 +57,10 @@ function AuthorInner({ user }) {
                   <span className="text-[11px] text-zinc-500">{label}</span>
                 </span>
               ))}
+            </div>
+            <div className="rounded-xl bg-white/6 px-3 py-2 ring-1 ring-white/10 ring-inset">
+              <Sparkline data={seriesFor(`author:${user.id}`, 12)} width={120} height={30} stroke="var(--color-brand-400)" />
+              <p className="text-center text-[9.5px] font-bold tracking-wider text-zinc-500 uppercase">momentum</p>
             </div>
           </div>
         </div>

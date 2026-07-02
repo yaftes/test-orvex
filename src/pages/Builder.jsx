@@ -205,13 +205,13 @@ function SaveStatus({ state, onRetry }) {
   }
   if (state === 'retrying') {
     return (
-      <button onClick={onRetry} className="flex cursor-pointer items-center gap-1.5 text-[12.5px] font-bold text-amber-600">
+      <button onClick={onRetry} className="flex cursor-pointer items-center gap-1.5 text-[12.5px] font-bold text-brand-600">
         <TriangleAlert size={13} /> Couldn’t save — retrying
       </button>
     )
   }
   return (
-    <span className="flex items-center gap-1.5 text-[12.5px] font-semibold text-emerald-600">
+    <span className="flex items-center gap-1.5 text-[12.5px] font-semibold text-brand-600">
       <Check size={13} /> Saved
     </span>
   )
@@ -266,7 +266,7 @@ function IconBtn({ label, onClick, danger, children }) {
       aria-label={label}
       className={cn(
         'grid h-7 w-7 cursor-pointer place-items-center rounded-lg transition-colors',
-        danger ? 'text-neutral-400 hover:bg-rose-50 hover:text-rose-600' : 'text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700',
+        danger ? 'text-neutral-400 hover:bg-neutral-900 hover:text-white' : 'text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700',
       )}
     >
       {children}
